@@ -34,7 +34,7 @@ def send_email_raw(to_emails, subject, html_body,
 
 class Mailer:
     TEMPLATE = 'email/notification.html'
-    DEFAULT_SUBJECT = "New Message from appname"
+    DEFAULT_SUBJECT = "New Message from MyTemplate"
     DEFAULT_LINK_TEXT = None
     DEFAULT_LINK_URL = None
 

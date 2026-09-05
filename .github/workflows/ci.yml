@@ -1,0 +1,75 @@
+name: MyTemplate CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+
+env:
+  APPNAME_ENV: test
+  # ProdConfig reads this at import time.
+  DATABASE_URL: "sqlite:///:memory:"
+
+jobs:
+  ci:
+    name: Lint, security, tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python3 -m venv env
+          env/bin/python -m pip install --upgrade pip
+          env/bin/python -m pip install -r requirements.txt
+
+      - name: Install Playwright browser
+        run: |
+          env/bin/python -m playwright install --with-deps chromium
+
+      # The same targets a developer runs locally -- no CI-only build logic, so
+      # a green pipeline here means the same thing as a green `make ci` at a desk.
+      - name: Static analysis (Ruff)
+        run: make lint
+
+      - name: Security scan (Bandit)
+        run: make security
+
+      - name: Backend tests + coverage
+        run: make test-backend
+
+      - name: UI tests (Playwright)
+        run: make test-ui
+
+      - name: Summarise artifacts
+        if: always()
+        run: make reports
+
+      # Uploaded even on failure -- a red build is exactly when you want to read
+      # the failure screenshots and the coverage delta.
+      - name: Upload build reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mytemplate-reports
+          path: reports/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Publish test results summary
+        if: always()
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: reports/junit-*.xml
+          check_name: Test results
+          fail_on_failure: true

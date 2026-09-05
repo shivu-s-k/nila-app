@@ -27,7 +27,8 @@ def server():
     ` $ FLASK_APP=manage flask --debug run `
     Do not use this for production (since it runs in debug mode)
     """
-    return app.run(debug=True)
+    # Dev-only helper; production serves via gunicorn (see Procfile).
+    return app.run(debug=True)  # nosec B201
 
 @app.cli.command()
 def initdb():

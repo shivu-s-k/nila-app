@@ -1,0 +1,51 @@
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+exclude = [
+    "env",
+    "migrations",
+    ".git",
+    "reports",
+    "appname/static",
+]
+
+[tool.ruff.lint]
+# High-signal set: pycodestyle errors (E), pyflakes (F) and bugbear (B).
+#
+# Deliberately NOT the whole catalogue. Turning on the import-sorting and
+# pyupgrade rules on this inherited starter code produced ~110 findings that
+# were pure restyling -- noise that would train people to ignore the gate.
+# These three families catch things that are actually wrong: dead imports,
+# shadowed names, broken .format() calls, swallowed exception context.
+select = ["E", "F", "B"]
+ignore = [
+    "E501",  # line length -- governed by line-length above, not worth churn here
+    "E226",  # missing whitespace around arithmetic operator
+    "E731",  # lambda assignment -- used intentionally in a few spots
+    "B008",  # function call in default argument (common Flask/WTForms idiom)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Star-imports here exist so Flask-Migrate discovers the models.
+"manage.py" = ["F403", "F405"]
+"appname/models/__init__.py" = ["F401"]
+# The starter suite asserts on broad exceptions in a few places; the
+# behaviour under test is the raise itself, not the exception class.
+"tests/*" = ["B017"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["appname", "tests"]
+
+[tool.bandit]
+exclude_dirs = ["env", "tests", "migrations", "appname/static"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+markers = [
+    "ui: Playwright browser tests (require `playwright install chromium`)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+]

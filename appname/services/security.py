@@ -6,7 +6,9 @@ class Token:
         self.app = app
         encoded_secret = app.config["SECRET_KEY"].encode()
         self.ts = URLSafeTimedSerializer(encoded_secret)
-        self.unique_salt = hashlib.md5(encoded_secret).hexdigest()[:5]
+        # Not a security boundary: this only namespaces tokens per-deployment.
+        # The secrecy comes from SECRET_KEY, which itsdangerous signs with.
+        self.unique_salt = hashlib.md5(encoded_secret, usedforsecurity=False).hexdigest()[:5]
 
     def generate(self, key, salt='default-salt'):
         return self.ts.dumps(key, salt + self.unique_salt)

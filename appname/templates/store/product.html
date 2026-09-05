@@ -1,7 +1,7 @@
 {% extends "store/base.html" %}
 {% from "helpers/_flashes.html" import render_flashes %}
 
-{% block title %}Purchase Ignite{% endblock %}
+{% block title %}Purchase MyTemplate{% endblock %}
 
 {% block head_js %}
     <script src="https://js.stripe.com/v3/"></script>
@@ -57,8 +57,8 @@
             <script src="https://checkout.stripe.com/checkout.js"
                 class="stripe-button"
                 data-key="{{ stripe_publishable_key }}" data-amount="14900"
-                data-name="Ignite"
-                data-description="Ignite Starter Code"
+                data-name="MyTemplate"
+                data-description="MyTemplate Starter Code"
                 data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
                 data-locale="auto"
                 data-currency="usd"
