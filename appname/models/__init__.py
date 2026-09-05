@@ -173,7 +173,7 @@ def transaction(f):
             value = f(*args, **kwds)
             db.session.commit()
             return value
-        except:  # noqa; This is intentional to ensure we rollback
+        except:  # noqa: E722 - intentional: roll back on any failure, then re-raise
             db.session.rollback()
             raise
     return wrapper
