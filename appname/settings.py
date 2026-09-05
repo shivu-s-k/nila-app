@@ -17,7 +17,7 @@ class Config(object):
     MAIL_USERNAME = os.getenv('MAIL_USERNAME')
     MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', True)
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = 'appname <admin@appname.com>'
+    MAIL_DEFAULT_SENDER = 'MyTemplate <admin@mytemplate.com>'
 
     SEGMENT_ANALYTICS_KEY = os.getenv('SEGMENT_ANALYTICS_KEY')
     STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
@@ -50,7 +50,7 @@ class ProdConfig(Config):
     # You need to set this for the DB
     # The replace call is required for newer versions of python
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', '').replace("postgres://", "postgresql://", 1)
-    CACHE_TYPE = 'redis'
+    CACHE_TYPE = 'RedisCache'
     CACHE_KEY_PREFIX = 'appname-'
 
     # You should be using HTTPS in production anyway, but if you are not, turn
@@ -65,7 +65,7 @@ class DevConfig(Config):
 
     SQLALCHEMY_DATABASE_URI = 'sqlite:///../database.db'
 
-    CACHE_TYPE = 'simple'
+    CACHE_TYPE = 'SimpleCache'
     # Don't do anything fancy with the assets pipeline (faster + easier to debug)
     ASSETS_DEBUG = True
     # Run jobs instantly, without needing to spin up a worker
@@ -85,7 +85,18 @@ class TestConfig(Config):
     SQLALCHEMY_ECHO = False  # Optionally enable if you want to see database actions
     ASSETS_DEBUG = True
 
-    CACHE_TYPE = 'null'
+    CACHE_TYPE = 'NullCache'
     CACHE_NO_NULL_WARNING = True
     WTF_CSRF_ENABLED = False
     RQ_ASYNC = False
+
+
+class UiTestConfig(TestConfig):
+    """Config for the Playwright UI suite.
+
+    Same as TestConfig, but with the Flask debug toolbar switched off: its
+    overlay sits on top of the page and intercepts clicks from the browser.
+    """
+    ENV = 'test'
+    DEBUG = False
+    DEBUG_TB_ENABLED = False

@@ -5,7 +5,7 @@ Use this when you want to get productive in this repo with minimal context.
 ## 1) Setup
 
 ```bash
-cd /Users/sumukh/code/Ignite
+cd /path/to/mytemplate
 python3 -m venv env
 source env/bin/activate
 python -m pip install --upgrade pip
@@ -33,15 +33,17 @@ Open [http://localhost:5000](http://localhost:5000)
 ## 4) Validate Changes
 
 ```bash
-# Fast smoke tests
-make agent-smoke
+# The whole gate: lint + security + backend tests + UI tests
+make ci
 
-# Full tracked tests + coverage (recommended)
-make agent-test
-
-# Optional: full test discovery (also includes untracked local tests)
-APPNAME_ENV=test ./manage.py test --coverage
+# Or one step at a time
+make lint
+make security
+make test-backend
+make test-ui
 ```
+
+Reports land in `reports/`. Run `make help` for every target.
 
 ## 5) High-Signal File Locations
 

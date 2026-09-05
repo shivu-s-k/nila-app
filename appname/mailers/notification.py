@@ -4,7 +4,7 @@ from appname.mailers import Mailer
 
 class NotificationMailer(Mailer):
     TEMPLATE = 'email/notification.html'
-    DEFAULT_SUBJECT = "[appname] New notification"
+    DEFAULT_SUBJECT = "[MyTemplate] New notification"
 
     def __init__(self, user, subject, text, link=None, attachments=None):
         self.recipient = None

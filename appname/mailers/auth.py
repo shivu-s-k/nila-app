@@ -6,7 +6,7 @@ from appname.extensions import token
 
 class ConfirmEmail(Mailer):
     TEMPLATE = 'email/confirm_email.html'
-    DEFAULT_SUBJECT = "Confirm your email on appname"
+    DEFAULT_SUBJECT = "Confirm your email on MyTemplate"
 
     def send(self):
         if self.recipient.email_confirmed:
@@ -19,7 +19,7 @@ class ConfirmEmail(Mailer):
 
 class ResetPassword(Mailer):
     TEMPLATE = 'email/reset_password.html'
-    DEFAULT_SUBJECT = "appname Password Reset"
+    DEFAULT_SUBJECT = "MyTemplate Password Reset"
 
     def send(self):
         user_token = token.generate(

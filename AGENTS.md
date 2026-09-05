@@ -37,14 +37,14 @@ Seeded dev logins after `resetdb`:
 ## Core Commands
 
 ```bash
-# Lint
-make lint
+# The whole gate (lint + security + backend + UI tests)
+make ci
 
-# Full tracked test suite (recommended)
-make agent-test
-
-# Full test discovery (also runs untracked local tests, if any)
-APPNAME_ENV=test ./manage.py test --coverage
+# Individual gates
+make lint          # Ruff
+make security      # Bandit
+make test-backend  # pytest + coverage
+make test-ui       # Playwright
 
 # Or raw pytest
 APPNAME_ENV=test pytest --cov-report=term-missing --cov=appname tests/
@@ -95,8 +95,8 @@ source .env.local
 2. Prefer focused edits in existing modules over broad refactors.
 3. After code changes:
    - Run targeted tests for touched area.
-   - Run `make agent-test` before final handoff when feasible.
-4. If models/migrations behavior is touched, run a local DB reset (`APPNAME_ENV=dev ./manage.py resetdb`) and sanity-check login/dashboard flows.
+   - Run `make ci` before final handoff when feasible.
+4. If models/migrations behavior is touched, run a local DB reset (`make resetdb`) and sanity-check login/dashboard flows.
 5. Do not commit secrets or `.env.local`.
 
 ## Common Change Targets

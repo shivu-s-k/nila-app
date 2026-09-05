@@ -1,165 +1,163 @@
-[![Ignite](https://user-images.githubusercontent.com/882381/45938197-49cfb880-bf7c-11e8-91ea-94fffd9d054a.png)](https://github.com/sumukh/ignite)
+# MyTemplate
 
-# Ignite for Flask [![Flask PyTest CI](https://github.com/Sumukh/Ignite/actions/workflows/flask-pytest.yml/badge.svg)](https://github.com/Sumukh/Ignite/actions/workflows/flask-pytest.yml)
+MyTemplate is a Flask SaaS starter — user authentication, OAuth, teams, billing,
+an admin dashboard and file uploads — wrapped in a repeatable quality pipeline
+that runs the same way locally and in CI.
 
-Ignite is a scaffold for starting new SaaS applications built using Python and Flask. It takes care of the boilerplate code (like User Registration, OAuth, Teams, and Billing), allowing you to focus on building your application. Ignite is built upon best practices for modern Flask applications.
+Derived from the [Ignite](https://github.com/Sumukh/Ignite) starter project. See
+[Credits and licence](#credits-and-licence).
 
-## Features
+---
 
-| Features                              | Status                                       | Details                                                                                    |
-| ------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| User Authentication                   | ✅                                           | User Login, Registration, Forgot Password, Email Confirmation                              |
-| OAuth Login                           | ✅                                           | Login or Register with Google, Twitter, Facebook, etc.                                     |
-| Teams/Groups                          | ✅                                           | Multi user teams & groups (with Invite Emails)                                             |
-| User Export & Deletion Request        | ✅                                           | Allows users to export their data (for GDPR compliance)                                    |
-| API                                   | ✅                                           | API (with user tokens) users to access data                                                |
-| Stripe Product Checkout               | ✅                                           | One time item purchases with credit cards and receipts (using Stripe)                      |
-| Heroku/Docker Deployment              | ✅                                           | Deployment instructions for some platforms. Works on AWS & Google Cloud                    |
-| Send Emails                           | ✅                                           | Send email notifications from the application                                              |
-| Admin Dashboard                       | ✅                                           | Admin dashboard to edit data                                                               |
-| File Uploads                          | ✅                                           | File uploads to cloud storage providers                                                    |
-| Basic Test Suite                      | ✅                                           | Starting point for you to build out tests                                                  |
-| VS Code Debugger & Editor             | ✅                                           | Configured to make you productive                                                          |
-| Tested on Windows 10, OSX, and Ubuntu | ✅                                           | Using Python 3                                                                             |
-| SaaS Recurring Billing                | 💲 (Requires purchasing a license to Ignite) | Team Billing, Usage Based Billing or Unlimited Plans                                       |
-| Commercial Usage                      | 💲 (License Required)                        | Commercial Usage requires a purchased license                                              |
-| Video Content                         | 💲                                           | Available as part of [the Fullstack Flask course](https://www.newline.co/fullstack-flask/) |
+## Quickstart
 
-## How to Buy
+Requires Python 3.11+.
 
-| Store                  | Comes With                                                                                                                     | Price                                                                       |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
-| Fullstack Flask Course | The Fullstack Flask Course & Book, hours of videos explaining how to build a SaaS in Flask, and a single license to Ignite Pro | [On Sale (for ~$199) at Newline »](https://www.newline.co/fullstack-flask/) |
-| Commercial License     | A license for usage on a single site                                                                                           | [($199) »](https://gumroad.com/l/xFvLo)                                     |
-
-## Setup
-
-Usage of Python 3 is required. It can be installed [on Python.org](https://www.python.org/downloads/)
-
-```
-# Optional but recommended:
-python3 -m venv env; source env/bin/activate
-
-pip install -r requirements.txt
-./manage.py server # or `FLASK_APP=manage flask --debug run`
+```bash
+make setup        # create ./env, install dependencies, install the Chromium browser
+make resetdb      # create and seed the local dev database
+make run          # http://localhost:5000
 ```
 
-## AI Agent Guide
+Log in with the seeded account:
 
-If you are using an AI coding agent, start with:
+| Email               | Password | Role  |
+| ------------------- | -------- | ----- |
+| `user@example.com`  | `test`   | user  |
+| `admin@example.com` | `admin`  | admin |
 
-- `AGENTS.md` for repo-specific workflow and architecture guidance
-- `documentation/AGENT_QUICKSTART.md` for copy-paste setup/test commands
-- `make agent-setup`, `make agent-smoke`, and `make agent-test` for standard agent checks
+## Running the checks
 
-## Development
+The whole gate is one command:
 
-```
-# Development
-# If using a virtual env: source env/bin/activate
-./manage.py resetdb # to seed data
-FLASK_APP=manage flask --debug run
-
-# Go to localhost:5000 in a browser and click on Login
-# Login with the following credentials "user@example.com", "test
-
-# Production documentation in the repository.
+```bash
+make ci
 ```
 
-## Testing
+That runs, in order — fast checks first, so a syntax error doesn't wait on a browser:
 
-Github Actions is configured to run tests and produce code coverage metrics.
+| Step           | Tool               | What it does                                  |
+| -------------- | ------------------ | --------------------------------------------- |
+| `lint`         | Ruff               | Static analysis; fails on any finding          |
+| `security`     | Bandit             | Security scan; fails on medium-or-higher       |
+| `test-backend` | pytest + pytest-cov| Backend tests, JUnit XML, coverage XML + HTML  |
+| `test-ui`      | Playwright         | Browser tests against a real running app       |
 
-To run tests locally, try this command:
+Each step also runs on its own — `make lint`, `make security`, `make test-backend`,
+`make test-ui` — so a failure points at exactly one thing. `make help` lists
+every target.
+
+### Simulating the CI run after a commit
+
+```bash
+git commit -m "your change"
+./scripts/simulate-ci.sh
+```
+
+The script prints the commit under test and runs `make ci`. The GitHub Actions
+workflow ([.github/workflows/ci.yml](.github/workflows/ci.yml)) calls the same
+`make` targets in the same order, so a green run here means the same thing as a
+green run on a pull request. There is no CI-only build logic.
+
+## Build artifacts
+
+Everything lands in `reports/`, regenerated on each run:
+
+| Artifact                          | Contents                                     |
+| --------------------------------- | -------------------------------------------- |
+| `junit-backend.xml`               | Backend test results (JUnit XML)             |
+| `junit-ui.xml`                    | Playwright UI test results (JUnit XML)       |
+| `coverage.xml`                    | Coverage, machine-readable (Cobertura)       |
+| `coverage-html/index.html`        | Coverage, browsable per-file with highlights |
+| `ruff.json` / `ruff.txt`          | Static analysis, machine- and human-readable |
+| `bandit.json` / `bandit.txt`      | Security scan, machine- and human-readable   |
+| `ui-artifacts/`                   | Screenshots and video, **failed UI tests only** |
+
+`make reports` prints this list with the current contents of the directory. In
+CI the whole directory is uploaded as an artifact, including on failure — a red
+build is exactly when you want the failure screenshots.
+
+Current state: **115 tests passing, 86% backend coverage**, Ruff and Bandit clean.
+
+## Tests
 
 ```
-APPNAME_ENV=test ./manage.py test --coverage
+tests/
+├── test_branding.py       # the rename + login flow, via the Flask test client
+├── test_urls.py, ...      # the starter suite (auth, teams, billing, API, models)
+└── ui/
+    ├── conftest.py        # runs the real WSGI app on a background thread
+    └── test_login_flow.py # Playwright: landing page -> signup/login -> dashboard
 ```
 
-### Local Secrets
+The tests are deliberately small. They cover the flows a customer actually
+walks — landing on the marketing page, signing up, logging in, reaching the
+dashboard — and assert the MyTemplate branding is what they see, rather than
+exhaustively exercising every model method.
 
-To configure OAuth login and Stripe billing in development, you will need to set some environment variables. See `.env.local.sample` for an example.
+The UI suite starts the app itself on a free port, so `make test-ui` needs no
+separately running server. It uses `UiTestConfig`, which is `TestConfig` with the
+Flask debug toolbar switched off — the toolbar's overlay sits on top of the page
+and swallows clicks meant for the app.
+
+## Configuration
+
+Environment is selected by `APPNAME_ENV` (`dev`, `test`, `prod`), which maps to a
+config class in [appname/settings.py](appname/settings.py). The `make` targets
+set it for you.
+
+To configure OAuth login and Stripe billing in development:
 
 ```bash
 cp .env.local.sample .env.local
-# Edit .env.local with your Stripe & Google test keys
+# add your Stripe & Google test keys
 source .env.local
-FLASK_APP=manage flask --debug run
+make run
 ```
 
-You may also want to change some of the constants in `appname.constants` and the `services/branding.py` file to change the name of the application in the UI.
+The application name and logo live in
+[appname/services/branding.py](appname/services/branding.py) — templates read
+`branding.name` rather than hardcoding a product name, so a future rename is one
+file.
+
+## Notes on this build
+
+Changes made on top of the upstream starter:
+
+- **Renamed Ignite → MyTemplate** across page titles, headers, email subjects,
+  logo assets (`static/public/mytemplate/`), metadata and README. The Python
+  package stays `appname` — that is the upstream package name, not branding, and
+  renaming it would churn every import for no user-visible gain.
+- **Fixed a baseline break**: `CACHE_TYPE` used the pre-2.0 Flask-Caching values
+  (`'null'`, `'simple'`, `'redis'`). Against the pinned Flask-Caching 2.x these
+  raise `ImportStringError` and the app would not boot. Now `NullCache`,
+  `SimpleCache`, `RedisCache`.
+- **Replaced flake8 with Ruff** and cleared the findings it surfaced: ~20 dead
+  imports, a shadowed `stripe` import, a `.format()` call with an argument that
+  went nowhere, an exception re-raised without its cause.
+- **Two Bandit findings, both addressed**: MD5 used to derive a token salt now
+  passes `usedforsecurity=False` (it namespaces tokens, it is not the security
+  boundary — `SECRET_KEY` is); and the `manage.py server` debug helper carries a
+  `# nosec B201` with the reason, since production serves via gunicorn.
+
+The Ruff rule set is deliberately narrow — `E`, `F`, `B`. Enabling the
+import-sorting and pyupgrade families produced ~110 further findings on
+inherited code that were pure restyling; a gate that noisy trains people to
+ignore it. See [pyproject.toml](pyproject.toml), where the reasoning is recorded
+next to the config.
 
 ## Deployment
 
-Ignite is not tied to a specific platform for deployment, but it works well on [Heroku](http://heroku.com) and [Dokku](http://dokku.viewdocs.io/dokku/) with minimal configuration.
+Not tied to a specific platform. Works on Heroku, Dokku, AWS, Google Cloud and
+DigitalOcean. Dokku instructions are in [documentation/](documentation/).
 
-It is also designed to work well on other cloud providers such as AWS, Google Cloud, and DigitalOcean.
+## Credits and licence
 
-Documentation is currently provided for installations on Dokku.
+MyTemplate is built on [Ignite](https://github.com/Sumukh/Ignite) by Sumukh
+Sridhara, which is a **commercial product**. The upstream licence terms in
+[LICENSE.md](LICENSE.md) continue to apply to this derivative: private
+non-commercial use is free, and commercial use requires purchasing a licence
+from the [Ignite store](https://gumroad.com/l/xFvLo) or via the
+[Fullstack Flask course](https://www.newline.co/fullstack-flask/).
 
-## Stripe Webhooks Locally
-
-- Install the [Stripe CLI](https://stripe.com/docs/stripe-cli)
-- Login to the Stripe CLI (`stripe login`)
-- Run `stripe listen --forward-to localhost:5000/webhooks/stripe`
-- Use the webhook secret and configure your app to use it (`export STRIPE_WEBHOOK_SECRET=whsec_...`)
-- To replay an event in a seperate console: `stripe events resend evt_XYZ`
-
-## Screenshots
-
-| Screenshot                              | Name                                                    |
-| --------------------------------------- | ------------------------------------------------------- |
-| Login / Signup / OAuth / Password Reset | ![login](documentation/screenshots/login.png)           |
-| Dashboard                               | ![Dashboard](documentation/screenshots/dashboard.png)   |
-| Saas Subscription Billing + Console     | ![Billing](documentation/screenshots/billing.png)       |
-| Teams                                   | ![Team](documentation/screenshots/team.png)             |
-| GDPR/Legal                              | ![GDPR](documentation/screenshots/gdpr.png)             |
-| Admin                                   | ![Admin](documentation/screenshots/admin.png)           |
-| API Tokens                              | ![API](documentation/screenshots/api.png)               |
-| Delayed Jobs                            | ![Jobs](documentation/screenshots/jobs.png)             |
-| Emails                                  | ![Emails](documentation/screenshots/email.png)          |
-| File Uploads                            | ![Files](documentation/screenshots/file-uploads.png)    |
-| Stripe Customer Portal Integration      | ![Stripe](documentation/screenshots/stripe-console.png) |
-
-## License
-
-This is a commercial product. You may purchase a license for commercial use at [Ignite Website](https://ignite.sumukh.me)
-
-Here's a summary:
-
-| Features                                     | Ignite         | (License) Ignite Premium |
-| -------------------------------------------- | -------------- | ------------------------ |
-| Cost                                         | Free           | $199 per site            |
-| Private Non Commercial Use                   | ✅             | ✅                       |
-| Commercial Use                               | No             | ✅                       |
-| Ability to remove "Powered by Ignite" footer | No             | ✅                       |
-| Video Tutorials                              | No             | ✅                       |
-| Re-license                                   | No             | Contact us               |
-| Support                                      | No             | No                       |
-| Warranty                                     | Provided As-is | Provided As-is           |
-| Refunds                                      | N/A            | 30 Day                   |
-
-You can purchase a license at the [Ignite Store](https://gumroad.com/l/xFvLo) or on [Newline as part of the Fullstack Flask course](https://www.newline.co/fullstack-flask/)
-
-For more detailed license information see LICENSE.md
-
-## Credits
-
-Design elements from [tabler](https://github.com/tabler/tabler) & Bootstrap 4.
-
-Built off of [Flask Foundation](https://jackstouffer.github.io/Flask-Foundation/) and the [bootstrapy project](https://github.com/kirang89/bootstrapy)
-
-### Extra Reading
-
-Only building out an API using Flask?
-
-- Use [create-flask-api](https://github.com/Sumukh/create-flask-api)
-
-**Course: [Fullstack Flask: Build a SaaS using Python and Flask](https://www.newline.co/fullstack-flask/)**
-
-Best practices List:
-
-- [Larger Applications With Flask](http://flask.pocoo.org/docs/patterns/packages/).
-- [Creating Websites With Flask](http://maximebf.com/blog/2012/10/building-websites-in-python-with-flask/)
-- [Getting Bigger With Flask](http://maximebf.com/blog/2012/11/getting-bigger-with-flask/)
-- [Miguel Grinberg's Blog](https://blog.miguelgrinberg.com/category/Python)
+Design elements from [tabler](https://github.com/tabler/tabler) and Bootstrap 4.
