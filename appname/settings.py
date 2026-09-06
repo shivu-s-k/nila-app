@@ -100,3 +100,30 @@ class UiTestConfig(TestConfig):
     ENV = 'test'
     DEBUG = False
     DEBUG_TB_ENABLED = False
+
+
+class DeployConfig(ProdConfig):
+    """Single-box deployment (AWS free tier).
+
+    ProdConfig assumes managed Postgres and Redis sitting alongside the app.
+    A free-tier t3.micro has neither, so this trades them for local equivalents:
+    SQLite on disk, an in-process cache, and background jobs run inline instead
+    of via an RQ worker. That is honest for a demo deployment -- swap in real
+    services before this carries traffic.
+    """
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        'DATABASE_URL', 'sqlite:////opt/mytemplate/mytemplate.db')
+
+    CACHE_TYPE = 'SimpleCache'
+    RQ_ASYNC = False
+
+    # Serve assets individually rather than bundling. The Tabler stylesheet is
+    # referenced by URL, and bundling would make the app fetch it at build time
+    # -- one flaky network call away from a 500 on every page.
+    ASSETS_DEBUG = True
+
+    # ProdConfig sets these True, which is correct behind TLS. This box serves
+    # plain HTTP, and a Secure cookie is never sent over it -- login would
+    # silently fail. Set these back to True the moment a certificate is in place.
+    SESSION_COOKIE_SECURE = False
+    REMEMBER_COOKIE_SECURE = False
