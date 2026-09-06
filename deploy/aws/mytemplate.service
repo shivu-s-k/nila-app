@@ -1,0 +1,31 @@
+[Unit]
+Description=MyTemplate (gunicorn)
+After=network.target
+
+[Service]
+Type=notify
+User=__APP_USER__
+Group=__APP_USER__
+WorkingDirectory=/opt/mytemplate
+Environment="APPNAME_ENV=deploy"
+Environment="PATH=/opt/mytemplate/env/bin"
+EnvironmentFile=/etc/mytemplate.env
+
+ExecStart=/opt/mytemplate/env/bin/gunicorn \
+    --workers 2 \
+    --bind 127.0.0.1:8000 \
+    --access-logfile - \
+    --error-logfile - \
+    wsgi:app
+
+Restart=always
+RestartSec=5
+
+# The app only ever needs to write to its own directory.
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=full
+ReadWritePaths=/opt/mytemplate
+
+[Install]
+WantedBy=multi-user.target
