@@ -20,8 +20,17 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 echo "==> Installing system packages"
+# Amazon Linux 2023 ships Python 3.9 as `python3`. The project is developed and
+# tested on 3.11, so install that explicitly rather than hoping 3.9 resolves the
+# same dependency versions.
+PY_BIN=python3
 if command -v dnf >/dev/null 2>&1; then
-    dnf install -y python3 python3-pip nginx gcc python3-devel
+    dnf install -y nginx gcc
+    if dnf install -y python3.11 python3.11-pip python3.11-devel 2>/dev/null; then
+        PY_BIN=python3.11
+    else
+        dnf install -y python3 python3-pip python3-devel
+    fi
 elif command -v yum >/dev/null 2>&1; then
     yum install -y python3 python3-pip nginx gcc python3-devel
 elif command -v apt-get >/dev/null 2>&1; then
@@ -32,10 +41,12 @@ else
     echo "No supported package manager found (dnf/yum/apt-get)." >&2
     exit 1
 fi
+echo "    using $(${PY_BIN} --version)"
 
 echo "==> Building the virtualenv"
 cd "${APP_DIR}"
-python3 -m venv env
+rm -rf env
+"${PY_BIN}" -m venv env
 env/bin/python -m pip install --upgrade pip --quiet
 # Playwright and the linters are build-time tooling; the server does not need them.
 grep -viE '^(pytest|ruff|bandit)' requirements.txt > /tmp/requirements-runtime.txt
