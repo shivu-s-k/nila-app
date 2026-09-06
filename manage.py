@@ -4,7 +4,6 @@ import os
 import binascii
 
 import click
-import pytest
 
 from flask_migrate import Migrate
 
@@ -94,6 +93,8 @@ def create_seeds():
 @app.cli.command()
 @click.option('--coverage/--no-coverage', default=False, help='Enable code coverage')
 def test(coverage):
+    import pytest  # imported here so the CLI works without dev dependencies
+
     args = []
     if env.lower() != 'test':
         print("Not running in TEST env, try setting the environment to test: APPNAME_ENV=test")
