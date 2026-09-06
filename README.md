@@ -148,8 +148,39 @@ next to the config.
 
 ## Deployment
 
-Not tied to a specific platform. Works on Heroku, Dokku, AWS, Google Cloud and
-DigitalOcean. Dokku instructions are in [documentation/](documentation/).
+**Live on AWS free tier: http://3.84.66.220/**
+
+Deployed to an EC2 `t3.micro` (Amazon Linux 2023) running gunicorn behind nginx,
+managed by systemd. One command from a checkout:
+
+```bash
+EC2_HOST=<ip> EC2_KEY=<path-to.pem> ./deploy/aws/deploy.sh
+```
+
+That ships the tracked tree, installs Python 3.11 and nginx, builds the
+virtualenv, creates the database, and starts the services. It is safe to re-run:
+the first deploy and every later one take the same path, so there is no separate
+update script to drift out of sync. Secrets in `/etc/mytemplate.env` are
+generated once and preserved across redeploys, so sessions survive an update.
+
+`deploy/aws/` holds the systemd unit, the nginx site and the bootstrap script.
+
+**No seed accounts exist on the deployed instance** — the box is reachable from
+the internet, and shipping a known `user@example.com` / `test` login to it would
+be careless. Sign up through `/signup` to get in; that exercises the real flow
+anyway.
+
+Known gaps, deliberate and documented in `DeployConfig`:
+
+- **Plain HTTP, no TLS.** The `Secure` cookie flags are therefore off, since a
+  Secure cookie is never sent over HTTP and login would fail silently. Put a
+  certificate in front (ALB, CloudFront or certbot) and turn them back on.
+- **SQLite, not Postgres**, and an in-process cache instead of Redis. Fine for a
+  single box; replace both before this takes real traffic.
+- **Background jobs run inline** rather than through an RQ worker.
+
+The project is not tied to AWS — it also runs on Heroku and Dokku; see
+[documentation/](documentation/).
 
 ## Credits and licence
 
